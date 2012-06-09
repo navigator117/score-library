@@ -1,7 +1,7 @@
 goog.provide('ScoreLibrary.ScoreDiv');
 goog.require('ScoreLibrary');
-goog.require('ScoreLibrary.AjaxMusicXML');
 goog.require('ScoreLibrary.Engraver.Pager');
+goog.require('ScoreLibrary.MusicXMLLoader');
 goog.require('ScoreLibrary.Renderer.Fonts.Gonville18');
 /*goog.require('ScoreLibrary.Renderer.Fonts.GonvilleBrace');*/
 goog.require('ScoreLibrary.Renderer.PaintContext.Canvas');
@@ -11,11 +11,13 @@ goog.require('ScoreLibrary.Score.Source');
  * @constructor
  * @export
  */
-ScoreLibrary.ScoreDiv = function(div_node, is_standalone) {
+ScoreLibrary.ScoreDiv = function(div_node, musicxml_file, is_standalone) {
 
     this.div_node = div_node;
 
     this.musicxml_ref = this.div_node.attr('musicxml_ref') || '';
+
+    this.musicxml_file = musicxml_file;
 
     this.is_standalone = is_standalone;
 
@@ -126,8 +128,8 @@ ScoreLibrary.ScoreDiv.prototype.optionToolbarButton =
         }
     };
 
-ScoreLibrary.ScoreDiv.prototype.createToolbarInput =
-    function(this_prop, input_attrs, input_css) {
+ScoreLibrary.ScoreDiv.prototype.createInput =
+    function(this_prop, input_attrs, input_css, parent_node) {
 
         var toolbar_input_node = this[this_prop];
         if (!toolbar_input_node) {
@@ -136,7 +138,7 @@ ScoreLibrary.ScoreDiv.prototype.createToolbarInput =
 
             toolbar_input_node.css(input_css);
 
-            toolbar_input_node.appendTo(this.toolbar_node);
+            toolbar_input_node.appendTo(parent_node);
 
             this[this_prop] = toolbar_input_node;
         }
@@ -185,7 +187,7 @@ ScoreLibrary.ScoreDiv.prototype.closeDialog = function(this_prop) {
 
 ScoreLibrary.ScoreDiv.prototype.createDialog =
     function(this_prop, dialog_attrs, dialog_params,
-             create_handler, resize_stop_handler) {
+             create_handler, resize_stop_handler, close_handler) {
 
         var dialog_node = this[this_prop];
         if (!dialog_node) {
@@ -207,6 +209,15 @@ ScoreLibrary.ScoreDiv.prototype.createDialog =
 
                     myself: this,
                     handler: resize_stop_handler
+                }, ScoreLibrary.ScoreDiv.callbackEventHandler);
+            }
+
+            if (close_handler) {
+
+                dialog_node.bind('dialogclose', {
+
+                    myself: this,
+                    handler: close_handler
                 }, ScoreLibrary.ScoreDiv.callbackEventHandler);
             }
 
@@ -258,7 +269,19 @@ ScoreLibrary.ScoreDiv.prototype.createToolbar = function() {
 
             if (!this.is_standalone) {
 
-                this.createToolbarInput(
+                this.createToolbarButton(
+                    'open_file_btn_node', {
+
+                        'id': 'open_file_btn',
+                        'text': 'Open local MusicXML'
+                    }, {
+
+                        'text': false,
+                        'icons': { 'primary': 'ui-icon-folder-collapsed' }
+                    }, {
+                    }, this.callbackClickFile);
+
+                this.createInput(
                     'go_url_input_node', {
                         'id': 'go_url_input',
                         'type': 'text',
@@ -267,7 +290,7 @@ ScoreLibrary.ScoreDiv.prototype.createToolbar = function() {
                         'maxlength': 256
                     }, {
                         'font-size': '1.1em'
-                    });
+                    }, this.toolbar_node);
 
                 this.createToolbarButton(
                     'go_url_btn_node', {
@@ -417,6 +440,75 @@ ScoreLibrary.ScoreDiv.prototype.checkNavigateStates = function() {
     this.optionToolbarButton('page_nth_btn_node', { 'disabled': !has_next });
 };
 
+ScoreLibrary.ScoreDiv.prototype.callbackClickFile = function(event) {
+
+    this.optionToolbarButton('open_file_btn_node', { 'disabled': true });
+
+    this.createDialog('open_file_dialog_node', {
+        'id': 'open_file_dialog'
+    }, {
+        'modal': true,
+        'autoOpen': false,
+        'position': ['center', 'center'],
+        'title': 'Open local MusicXML',
+        'resizable': false,
+        'width': 500,
+        'height': 'auto',
+        'buttons': {
+            'OK': function() {
+
+                var dialog_node = $(this);
+
+                dialog_node.prop('ok_clicked', true);
+
+                dialog_node.dialog('close');
+            },
+            'Cancel': function() {
+
+                var dialog_node = $(this);
+
+                dialog_node.prop('ok_clicked', false);
+
+                dialog_node.dialog('close');
+            }
+        }
+    }, this.callbackCreateFileDialog, undefined, this.callbackCloseFileDialog);
+
+    this.optionToolbarButton('open_file_btn_node', { 'disabled': false });
+};
+
+
+ScoreLibrary.ScoreDiv.prototype.callbackCreateFileDialog =
+    function(event, ui) {
+
+        var mime_types = ScoreLibrary.MusicXMLMIMETypes;
+
+        this.createInput(
+            'open_file_input_node', {
+                'id': 'open_file_input',
+                'type': 'file',
+                'accept': mime_types.MIME_MXL + ', ' + mime_types.MIME_XML
+            }, {
+            }, this['open_file_dialog_node']);
+    };
+
+ScoreLibrary.ScoreDiv.prototype.callbackCloseFileDialog =
+    function(event, ui) {
+
+        var ok_clicked = this['open_file_dialog_node'].prop('ok_clicked');
+        var files = this['open_file_input_node'].prop('files');
+
+        if (ok_clicked && files && files.length === 1) {
+
+            this.musicxml_file = files[0];
+            this.musicxml_ref = this.musicxml_file.name;
+            this['go_url_input_node'].prop('value', this.musicxml_ref);
+
+            this.closeStandaloneViewer();
+            this.asyncGetScore();
+        }
+    };
+
 ScoreLibrary.ScoreDiv.prototype.callbackClickGoURL = function(event) {
 
     this.optionToolbarButton('go_url_btn_node', { 'disabled': true });
@@ -426,11 +518,7 @@ ScoreLibrary.ScoreDiv.prototype.callbackClickGoURL = function(event) {
         this.musicxml_ref = this['go_url_input_node'].prop('value');
     }
 
-    this.closeDialog('standalone_dialog_node');
-
-    delete this.standalone_scorediv;
-    delete this['standalone_dialog_node'];
-
+    this.closeStandaloneViewer();
     this.asyncGetScore();
 };
 
@@ -463,7 +551,7 @@ ScoreLibrary.ScoreDiv.prototype.callbackCreateStandaloneViewer =
                         'width': this.width,
                         'height': this.height,
                         'musicxml_ref': this.musicxml_ref
-                    }), true);
+                    }), this.musicxml_file, true);
         }
     };
 
@@ -474,9 +562,18 @@ ScoreLibrary.ScoreDiv.prototype.callbackResizeStopStandaloneViewer =
 
             this.standalone_scorediv.resize(
                 ui['size']['width'], ui['size']['height']);
+
             this.standalone_scorediv.asyncGetScore();
         }
     };
+
+ScoreLibrary.ScoreDiv.prototype.closeStandaloneViewer = function() {
+
+    this.closeDialog('standalone_dialog_node');
+
+    delete this.standalone_scorediv;
+    delete this['standalone_dialog_node'];
+};
 
 ScoreLibrary.ScoreDiv.prototype.callbackClickPage1st = function(event) {
 
@@ -622,11 +719,9 @@ ScoreLibrary.ScoreDiv.prototype.asyncGetScore = function() {
 
     this.showWaitingImage();
 
-    new ScoreLibrary.AjaxMusicXML(
-        this.musicxml_ref,
-        this,
-        this.callbackScore,
-        this.callbackError);
+    return ScoreLibrary.MusicXMLLoader.create(
+        (this.musicxml_file ? this.musicxml_file : this.musicxml_ref),
+        this, this.callbackScore, this.callbackError);
 };
 
 ScoreLibrary.ScoreDiv.divClass = '.score-div';

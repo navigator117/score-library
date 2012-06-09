@@ -1,4 +1,4 @@
-goog.provide('ScoreLibrary.AjaxMusicXML');
+goog.provide('ScoreLibrary.MusicXMLLoader');
 goog.require('ScoreLibrary');
 goog.require('ScoreLibrary.Inflater');
 goog.require('ScoreLibrary.MusicXMLMIMETypes');
@@ -6,47 +6,34 @@ goog.require('ScoreLibrary.MusicXMLMIMETypes');
 /**
  * @constructor
  */
-ScoreLibrary.AjaxMusicXML =
-    function(musicxml_ref, context, successCallback, errorCallback) {
+ScoreLibrary.MusicXMLLoader =
+    function(file_or_ref, context, successCallback, errorCallback) {
 
-        this.musicxml_ref = musicxml_ref;
+        this.musicxml_ref =
+            (typeof file_or_ref === 'object' ?
+             file_or_ref.name : file_or_ref);
 
-        this.want_compressed = (/.*\.mxl$/.test(musicxml_ref) ? true : false);
+        this.want_compressed =
+            (/.*\.mxl$/.test(this.musicxml_ref) ? true : false);
 
         this.context = context;
         this.successCallback = successCallback;
         this.errorCallback = errorCallback;
-
-        this.ajax();
     };
 
-
-ScoreLibrary.AjaxMusicXML.prototype.getMIMEType = function() {
+ScoreLibrary.MusicXMLLoader.prototype.getMIMEType = function() {
 
     var mime_types = ScoreLibrary.MusicXMLMIMETypes;
 
     return (this.want_compressed ? mime_types.MIME_MXL : mime_types.MIME_XML);
 };
 
-ScoreLibrary.AjaxMusicXML.prototype.getDataType = function() {
+ScoreLibrary.MusicXMLLoader.prototype.getDataType = function() {
 
     return (this.want_compressed ? 'mxl' : 'xml');
 };
 
-ScoreLibrary.AjaxMusicXML.prototype.ajax = function() {
-
-    $.ajax({
-        'url': this.musicxml_ref,
-        'type': 'GET',
-        'mimeType': this.getMIMEType(),
-        'dataType': this.getDataType(),
-        'context': this,
-        'success': this.callbackSuccess,
-        'error': this.callbackError
-    });
-};
-
-ScoreLibrary.AjaxMusicXML.prototype.callbackSuccess = function(result) {
+ScoreLibrary.MusicXMLLoader.prototype.callbackSuccess = function(result) {
 
     if (this.want_compressed) {
 
@@ -60,6 +47,76 @@ ScoreLibrary.AjaxMusicXML.prototype.callbackSuccess = function(result) {
 
         this.successCallback.call(this.context, result);
     }
+};
+
+/**
+ * @constructor
+ * @extends {ScoreLibrary.MusicXMLLoader}
+ */
+ScoreLibrary.FileMusicXML =
+    function(musicxml_file, context, successCallback, errorCallback) {
+
+        var supperclass = ScoreLibrary.FileMusicXML.supperclass;
+
+        supperclass.constructor.call(
+            this, musicxml_file, context, successCallback, errorCallback);
+
+        this.musicxml_file = musicxml_file;
+
+        this.load();
+    };
+
+ScoreLibrary.inherited(ScoreLibrary.FileMusicXML, ScoreLibrary.MusicXMLLoader);
+
+ScoreLibrary.FileMusicXML.prototype.load = function() {
+
+    var reader = new FileReader();
+
+    var loader = this;
+
+    reader.onload = function(event) {
+
+        loader.callbackSuccess(event.target.result);
+    };
+    reader.onerror = loader.callbackError;
+
+    reader.readAsBinaryString(this.musicxml_file);
+};
+
+ScoreLibrary.FileMusicXML.prototype.callbackError =
+    function(errorThrown) {
+
+        this.errorCallback.call(this.context, errorThrown);
+    };
+
+/**
+ * @constructor
+ * @extends {ScoreLibrary.MusicXMLLoader}
+ */
+ScoreLibrary.AjaxMusicXML =
+    function(musicxml_ref, context, successCallback, errorCallback) {
+
+        var supperclass = ScoreLibrary.AjaxMusicXML.supperclass;
+
+        supperclass.constructor.call(
+            this, musicxml_ref, context, successCallback, errorCallback);
+
+        this.load();
+    };
+
+ScoreLibrary.inherited(ScoreLibrary.AjaxMusicXML, ScoreLibrary.MusicXMLLoader);
+
+ScoreLibrary.AjaxMusicXML.prototype.load = function() {
+
+    $.ajax({
+        'url': this.musicxml_ref,
+        'type': 'GET',
+        'mimeType': this.getMIMEType(),
+        'dataType': this.getDataType(),
+        'context': this,
+        'success': this.callbackSuccess,
+        'error': this.callbackError
+    });
 };
 
 ScoreLibrary.AjaxMusicXML.prototype.callbackError =
@@ -89,6 +146,16 @@ ScoreLibrary.AjaxMusicXML.prototype.callbackError =
             options['mimeType'] = 'text/plain; charset=x-user-defined';
         });
 })();
+
+ScoreLibrary.MusicXMLLoader.create =
+    function(file_or_ref, context, successCallback, errorCallback) {
+
+        return (typeof file_or_ref === 'object' ?
+                new ScoreLibrary.FileMusicXML(
+                    file_or_ref, context, successCallback, errorCallback) :
+                new ScoreLibrary.AjaxMusicXML(
+                    file_or_ref, context, successCallback, errorCallback));
+    };
 /**
  * @author XiongWenjie <navigator117@gmail.com>
  * @license This file is part of
