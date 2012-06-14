@@ -6,39 +6,19 @@ goog.require('goog.asserts');
 /**
  * @constructor
  */
-ScoreLibrary.Renderer.PaintContext.Canvas = function(canvas) {
+ScoreLibrary.Renderer.PaintContext.Canvas = function(canvas_node) {
 
     var supperclass =
         ScoreLibrary.Renderer.PaintContext.Canvas.supperclass;
 
-    supperclass.constructor.call(this, canvas);
+    supperclass.constructor.call(this, canvas_node);
 
-    this.context = this.canvas[0].getContext('2d');
+    this.context = this.canvas_node[0].getContext('2d');
 };
 
 ScoreLibrary.inherited(
     ScoreLibrary.Renderer.PaintContext.Canvas,
     ScoreLibrary.Renderer.PaintContext);
-
-ScoreLibrary.Renderer.PaintContext.Canvas.prototype.getWidth = function() {
-
-    return this.canvas.prop('width');
-};
-
-ScoreLibrary.Renderer.PaintContext.Canvas.prototype.getHeight = function() {
-
-    return this.canvas.prop('height');
-};
-
-ScoreLibrary.Renderer.PaintContext.Canvas.prototype.resize =
-    function(width, height) {
-
-    this.canvas.prop({
-
-        'width': width,
-        'height': height
-    });
-};
 
 ScoreLibrary.Renderer.PaintContext.Canvas.prototype.save = function() {
 
@@ -77,7 +57,7 @@ ScoreLibrary.Renderer.PaintContext.Canvas.prototype.clear = function() {
     try {
 
         this.context.clearRect(
-            0, 0, this.canvas.prop('width'), this.canvas.prop('height'));
+            0, 0, this.getWidth(), this.getHeight());
 
         this.context.beginPath();
     }
@@ -549,6 +529,28 @@ ScoreLibrary.Renderer.PaintContext.Canvas.prototype.arc =
         );
     }
 };
+
+ScoreLibrary.Renderer.PaintContext.Canvas.prototype.drawImage =
+    function(image, var_args) {
+
+        if (ScoreLibrary.Renderer.PaintContext.prototype.isPrototypeOf(image)) {
+
+            image = image.getCanvas();
+        }
+
+        try {
+
+            this.context.drawImage.apply(this.context, arguments);
+        }
+        catch (e) {
+
+            ScoreLibrary.Logger.shout(
+                'ERROR: caught exception ' +
+                    ScoreLibrary.Logger.deepExpose(e) +
+                    'in ScoreLibrary.Renderer.PaintContext.Canvas.drawImage()!'
+            );
+        }
+    };
 /**
  * @author XiongWenjie <navigator117@gmail.com>
  * @license This file is part of

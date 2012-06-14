@@ -6,17 +6,33 @@ goog.require('goog.asserts');
 /**
  * @constructor
  */
-ScoreLibrary.Renderer.PaintContext = function(canvas) {
+ScoreLibrary.Renderer.PaintContext = function(canvas_node) {
 
-    this.canvas = canvas;
-    this.context = undefined;
+    this.canvas_node = canvas_node;
+};
+
+ScoreLibrary.Renderer.PaintContext.prototype.getCanvas = function() {
+
+    return this.canvas_node[0];
+};
+
+ScoreLibrary.Renderer.PaintContext.prototype.getWidth = function() {
+
+    return this.canvas_node.prop('width');
+};
+
+ScoreLibrary.Renderer.PaintContext.prototype.getHeight = function() {
+
+    return this.canvas_node.prop('height');
 };
 
 ScoreLibrary.Renderer.PaintContext.prototype.resize = function(width, height) {
 
-    goog.asserts.assert(
-        false,
-        'ScoreLibrary.Renderer.PaintContext.resize(): Unimplemented!');
+    this.canvas_node.prop({
+
+        'width': width,
+        'height': height
+    });
 };
 
 ScoreLibrary.Renderer.PaintContext.prototype.save = function() {
@@ -262,6 +278,14 @@ ScoreLibrary.Renderer.PaintContext.prototype.arc =
         false,
         'ScoreLibrary.Renderer.PaintContext.arc(): Unimplemented!');
 };
+
+ScoreLibrary.Renderer.PaintContext.prototype.drawImage =
+    function(image, var_args) {
+
+        goog.asserts.assert(
+            false,
+            'ScoreLibrary.Renderer.PaintContext.drawImage(): Unimplemented!');
+    };
 /**
  * @author XiongWenjie <navigator117@gmail.com>
  * @license This file is part of

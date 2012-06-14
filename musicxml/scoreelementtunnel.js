@@ -57,6 +57,8 @@ ScoreLibrary.Score.ElementTunnelStates.prototype.initState =
         if (attributes && attributes[state] && attributes[state][index]) {
 
             this[state][index] = attributes[state][index];
+
+            this[state][index].owner = this;
         }
         else if (!this[state][index]) {
 
