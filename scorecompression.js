@@ -25,7 +25,11 @@ ScoreLibrary.Inflater =
 
         var inflater = this;
 
-        zip.workerScriptsPath = '../../zip.js/';
+        if (!zip.workerScriptsPath) {
+
+            throw Error('ScoreLibrary.Inflater(): ' +
+                        'set zip.workerScriptsPath first!');
+        }
 
         zip.createReader(
             new zip.BlobReader(this.binaryStringToBlob(text)),

@@ -3,7 +3,6 @@ goog.require('ScoreLibrary');
 goog.require('ScoreLibrary.Engraver.Pager');
 goog.require('ScoreLibrary.MusicXMLLoader');
 goog.require('ScoreLibrary.Renderer.Fonts.Gonville18');
-/*goog.require('ScoreLibrary.Renderer.Fonts.GonvilleBrace');*/
 goog.require('ScoreLibrary.Renderer.PaintContext.Canvas');
 goog.require('ScoreLibrary.Score.Source');
 
@@ -11,102 +10,130 @@ goog.require('ScoreLibrary.Score.Source');
  * @constructor
  * @export
  */
-ScoreLibrary.ScoreDiv = function(div_node, musicxml_file, is_standalone) {
+ScoreLibrary.ScoreDiv =
+    function(div_node, musicxml_file, is_standalone, show_toolbar) {
+
+        this.initContextCache(div_node);
+
+        this.musicxml_ref = this.div_node.attr('musicxml_ref') || '';
+
+        this.musicxml_file = musicxml_file;
+
+        this.is_standalone = (is_standalone ? true : false);
+
+        this.show_toolbar = (show_toolbar ? true : false);
+
+        this.createToolbar();
+
+        this.asyncGetScore();
+    };
+
+ScoreLibrary.ScoreDiv.prototype.initContextCache = function(div_node) {
 
     this.div_node = div_node;
 
-    this.musicxml_ref = this.div_node.attr('musicxml_ref') || '';
+    this.canvas_node = $('<canvas/>');
 
-    this.musicxml_file = musicxml_file;
-
-    this.is_standalone = is_standalone;
-
-    this.createCanvas();
-
-    this.resize(Number(this.div_node.attr('width')) || 800,
-                Number(this.div_node.attr('height')) || 650);
-
-    this.asyncGetScore();
-};
-
-ScoreLibrary.ScoreDiv.prototype.resize = function(width, height) {
-
-    this.width = width;
-    this.height = height;
-
-    this.div_node.css({
-        'position': 'relative',
-        'width': this.width,
-        'height': this.height
-    });
-
-    if (this.canvas_node) {
-
-        this.canvas_node.prop('width', this.width);
-        this.canvas_node.prop('height', this.height - this.getToolbarHeight());
-    }
-};
-
-ScoreLibrary.ScoreDiv.prototype.restContextCache = function() {
-
-    delete this.context_caches;
-};
-
-ScoreLibrary.ScoreDiv.prototype.findContextCache =
-    function(page_index, create) {
-
-        page_index = (page_index >= 0 ? page_index : 0);
-
-        this.context_caches = this.context_caches || [];
-
-        var context_cached = this.context_caches[page_index];
-
-        if (!context_cached && create) {
-
-            var canvas_node = $('<canvas/>');
-
-            canvas_node.attr('width', this.width);
-            canvas_node.attr('height', this.height - this.getToolbarHeight());
-
-            context_cached =
-                new ScoreLibrary.Renderer.PaintContext.Canvas(canvas_node);
-
-            var custom_renderer =
-                context_cached.getCustomTextRenderer();
-
-            custom_renderer.setGlyphFactory(this.glyph_factory);
-
-            this.context_caches[page_index] = context_cached;
-        }
-
-        return context_cached;
-    };
-
-ScoreLibrary.ScoreDiv.prototype.createCanvas = function() {
-
-    if (!this.canvas_node) {
-
-        this.canvas_node = $('<canvas/>');
-
-        this.canvas_node.css({
+    this.canvas_node.css({
 
             'position': 'absolute',
             'left': 0,
             'top': 0
         });
 
-        this.canvas_node.appendTo(this.div_node);
-    }
+    this.canvas_node.appendTo(this.div_node);
+
+    this.draw_context =
+        new ScoreLibrary.Renderer.PaintContext.Canvas(this.canvas_node);
+
+    this.custom_renderer = this.draw_context.getCustomTextRenderer();
+
+    this.glyph_factory = this.custom_renderer.getGlyphFactory();
+
+    this.glyph_factory.addFont(ScoreLibrary.Renderer.Fonts.Gonville18);
+
+/*  this.glyph_factory.addFont(ScoreLibrary.Renderer.Fonts.GonvilleBrace); */
 };
 
-ScoreLibrary.ScoreDiv.prototype.getCanvas = function() {
+ScoreLibrary.ScoreDiv.prototype.resizeContext = function(width, height) {
 
-    return this.canvas_node[0];
+    this.draw_context.resize(width, height);
+
+    this.clearPageContexts();
+};
+
+ScoreLibrary.ScoreDiv.prototype.getContextWidth = function() {
+
+    return this.draw_context.getWidth();
+};
+
+ScoreLibrary.ScoreDiv.prototype.getContextHeight = function() {
+
+    return this.draw_context.getHeight();
+};
+
+ScoreLibrary.ScoreDiv.prototype.getDrawContext = function() {
+
+    return this.draw_context;
+};
+
+ScoreLibrary.ScoreDiv.prototype.getPageContext =
+    function(page_index, create) {
+
+        page_index = (page_index >= 0 ? page_index : 0);
+
+        this.page_contexts = this.page_contexts || [];
+
+        var page_context = this.page_contexts[page_index];
+
+        if (!page_context && create) {
+
+            page_context =
+                new ScoreLibrary.Renderer.PaintContext.Canvas($('<canvas/>'));
+
+            page_context.resize(
+                this.getContextWidth(), this.getContextHeight());
+
+            var custom_renderer =
+                page_context.getCustomTextRenderer();
+
+            custom_renderer.setGlyphFactory(this.glyph_factory);
+
+            this.page_contexts[page_index] = page_context;
+        }
+
+        return page_context;
+    };
+
+ScoreLibrary.ScoreDiv.prototype.clearPageContexts = function() {
+
+    delete this.page_contexts;
+};
+
+ScoreLibrary.ScoreDiv.prototype.getWidth = function() {
+
+    return this.div_node.width();
+};
+
+ScoreLibrary.ScoreDiv.prototype.getHeight = function() {
+
+    return this.div_node.height();
 };
 
 ScoreLibrary.ScoreDiv.prototype.getToolbarHeight = function() {
 
-    return 40;
+    return this.toolbar_node.outerHeight();
+};
+
+ScoreLibrary.ScoreDiv.prototype.showToolbar = function() {
+
+    if (!(!this.is_standalone && !this.show_toolbar && !this.hasNextPage())) {
+
+        if (!this.is_standalone) {
+
+            this.toolbar_node.css('display', 'block');
+        }
+    }
 };
 
 ScoreLibrary.ScoreDiv.callbackEventHandler = function(event, ui) {
@@ -235,154 +262,152 @@ ScoreLibrary.ScoreDiv.prototype.createToolbar = function() {
 
     if (!this.toolbar_node) {
 
-        if (this.hasNextPage()) {
+        if (!this.is_standalone) {
 
-            if (!this.is_standalone) {
-
-                this.toolbar_node =
-                    $('<span></span>', {
-                        'id': 'toolbar',
-                        'class': 'ui-widget-header ui-corner-all'
-                    });
-
-                this.toolbar_node.css({
-                    'position': 'absolute',
-                    'right': 0,
-                    'bottom': 0,
-                    'font-family':
-                    "'Trebuchet MS', 'Arial', '" +
-                        "''Helvetica', 'Verdana', 'sans-serif'",
-                    'padding': '0px 4px'
+            this.toolbar_node =
+                $('<span></span>', {
+                    'id': 'toolbar',
+                    'class': 'ui-widget-header ui-corner-all'
                 });
 
-                this.toolbar_node.appendTo(this.div_node);
-            }
-            else {
+            this.toolbar_node.css({
+                'position': 'absolute',
+                'display': 'none',
+                'right': 0,
+                'bottom': 0,
+                'font-family':
+                "'Trebuchet MS', 'Arial', '" +
+                    "''Helvetica', 'Verdana', 'sans-serif'",
+                'padding': '0px 4px'
+            });
 
-                this.toolbar_node = this.div_node.prev('.ui-dialog-titlebar');
+            this.toolbar_node.appendTo(this.div_node);
+        }
+        else {
 
-                this.toolbar_node.css({
+            this.toolbar_node = this.div_node.prev('.ui-dialog-titlebar');
 
-                    'padding': '0px'
-                });
-            }
+            this.toolbar_node.css({
 
-            if (!this.is_standalone) {
+                'padding': '0px'
+            });
+        }
 
-                this.createToolbarButton(
-                    'open_file_btn_node', {
-
-                        'id': 'open_file_btn',
-                        'text': 'Open local MusicXML'
-                    }, {
-
-                        'text': false,
-                        'icons': { 'primary': 'ui-icon-folder-collapsed' }
-                    }, {
-                    }, this.callbackClickFile);
-
-                this.createInput(
-                    'go_url_input_node', {
-                        'id': 'go_url_input',
-                        'type': 'text',
-                        'value': this.musicxml_ref,
-                        'size': 30,
-                        'maxlength': 256
-                    }, {
-                        'font-size': '1.1em'
-                    }, this.toolbar_node);
-
-                this.createToolbarButton(
-                    'go_url_btn_node', {
-
-                        'id': 'go_url_btn',
-                        'text': 'Refresh'
-                    }, {
-
-                        'text': false,
-                        'icons': { 'primary': 'ui-icon-refresh' }
-                    }, {
-                    }, this.callbackClickGoURL);
-            }
-            else {
-
-                this.createToolbarButton(
-                    'go_url_btn_node', {
-
-                        'id': 'go_url_btn',
-                        'text': this.musicxml_ref
-                    }, {
-                        'icons': { 'secondary': 'ui-icon-refresh' }
-                    }, {
-                    }, this.callbackClickGoURL);
-            }
+        if (!this.is_standalone) {
 
             this.createToolbarButton(
-                'page_1st_btn_node', {
+                'open_file_btn_node', {
 
-                    'id': 'page_1st_btn',
-                    'text': 'Goto First Page'
+                    'id': 'open_file_btn',
+                    'text': 'Open local MusicXML'
                 }, {
 
                     'text': false,
-                    'icons': { 'primary': 'ui-icon-arrowthickstop-1-w' },
-                    'disabled': true
+                    'icons': { 'primary': 'ui-icon-folder-collapsed' }
                 }, {
-                }, this.callbackClickPage1st);
+                }, this.callbackClickFile);
+
+            this.createInput(
+                'go_url_input_node', {
+                    'id': 'go_url_input',
+                    'type': 'text',
+                    'value': this.musicxml_ref,
+                    'size': 30,
+                    'maxlength': 256
+                }, {
+                    'font-size': '1.1em'
+                }, this.toolbar_node);
 
             this.createToolbarButton(
-                'page_prev_btn_node', {
+                'go_url_btn_node', {
 
-                    'id': 'page_prev_btn',
-                    'text': 'Goto Prev Page'
+                    'id': 'go_url_btn',
+                    'text': 'Refresh'
                 }, {
 
                     'text': false,
-                    'icons': { 'primary': 'ui-icon-arrowthick-1-w' },
-                    'disabled': true
-                },{
-                }, this.callbackClickPagePrev);
+                    'icons': { 'primary': 'ui-icon-refresh' }
+                }, {
+                }, this.callbackClickGoURL);
+        }
+        else {
 
             this.createToolbarButton(
-                'page_next_btn_node', {
+                'go_url_btn_node', {
 
-                    'id': 'page_next_btn',
-                    'text': 'Goto Next Page'
+                    'id': 'go_url_btn',
+                    'text': this.musicxml_ref
+                }, {
+                    'icons': { 'secondary': 'ui-icon-refresh' }
+                }, {
+                }, this.callbackClickGoURL);
+        }
+
+        this.createToolbarButton(
+            'page_1st_btn_node', {
+
+                'id': 'page_1st_btn',
+                'text': 'Goto First Page'
+            }, {
+
+                'text': false,
+                'icons': { 'primary': 'ui-icon-arrowthickstop-1-w' },
+                'disabled': true
+            }, {
+            }, this.callbackClickPage1st);
+
+        this.createToolbarButton(
+            'page_prev_btn_node', {
+
+                'id': 'page_prev_btn',
+                'text': 'Goto Prev Page'
+            }, {
+
+                'text': false,
+                'icons': { 'primary': 'ui-icon-arrowthick-1-w' },
+                'disabled': true
+            },{
+            }, this.callbackClickPagePrev);
+
+        this.createToolbarButton(
+            'page_next_btn_node', {
+
+                'id': 'page_next_btn',
+                'text': 'Goto Next Page'
+            }, {
+
+                'text': false,
+                'icons': { 'primary': 'ui-icon-arrowthick-1-e' },
+                'disabled': true
+            }, {
+            }, this.callbackClickPageNext);
+
+        this.createToolbarButton(
+            'page_nth_btn_node', {
+
+                'id': 'page_nth_btn',
+                'text': 'Goto Last Page'
+            }, {
+
+                'text': false,
+                'icons': { 'primary': 'ui-icon-arrowthickstop-1-e' },
+                'disabled': true
+            }, {
+            }, this.callbackClickPageNth);
+
+        if (!this.is_standalone) {
+
+            this.createToolbarButton(
+                'standalone_btn_node', {
+
+                    'id': 'standalone_btn',
+                    'text': 'Standalone Viewer'
                 }, {
 
                     'text': false,
-                    'icons': { 'primary': 'ui-icon-arrowthick-1-e' },
-                    'disabled': true
+                    'icons': { 'primary': 'ui-icon-newwin' }
                 }, {
-                }, this.callbackClickPageNext);
-
-            this.createToolbarButton(
-                'page_nth_btn_node', {
-
-                    'id': 'page_nth_btn',
-                    'text': 'Goto Last Page'
-                }, {
-
-                    'text': false,
-                    'icons': { 'primary': 'ui-icon-arrowthickstop-1-e' },
-                    'disabled': true
-                }, {
-                }, this.callbackClickPageNth);
-
-            if (!this.is_standalone) {
-
-                this.createToolbarButton(
-                    'standalone_btn_node', {
-
-                        'id': 'standalone_btn',
-                        'text': 'Standalone Viewer'
-                    }, {
-
-                        'text': false,
-                        'icons': { 'primary': 'ui-icon-newwin' }
-                    }, {
-                    }, this.callbackClickStandaloneBtn);
-            }
+                }, this.callbackClickStandaloneBtn);
         }
     }
 };
@@ -395,10 +420,10 @@ ScoreLibrary.ScoreDiv.prototype.showCurrPage = function() {
 
         var page = this.page_iterator.next();
 
-        var context = this.findContextCache(page_index);
-        if (!context) {
+        var page_context = this.getPageContext(page_index);
+        if (page_context === undefined) {
 
-            context = this.findContextCache(page_index, true);
+            page_context = this.getPageContext(page_index, true);
 
             page.sizeAllocateRecursively({
 
@@ -406,11 +431,13 @@ ScoreLibrary.ScoreDiv.prototype.showCurrPage = function() {
                 height: page.getRequisite('height')
             });
 
-            page.draw(context);
+            page.draw(page_context);
         }
 
-        this.context.clear();
-        this.context.context.drawImage(context.canvas[0], 0, 0);
+        var draw_context = this.getDrawContext();
+
+        draw_context.clear();
+        draw_context.drawImage(page_context, 0, 0);
 
         this.page_iterator.prev(); // back to current.
     }
@@ -489,6 +516,7 @@ ScoreLibrary.ScoreDiv.prototype.callbackCreateFileDialog =
                 'type': 'file',
                 'accept': mime_types.MIME_MXL + ', ' + mime_types.MIME_XML
             }, {
+                'width': '100%'
             }, this['open_file_dialog_node']);
     };
 
@@ -531,10 +559,10 @@ ScoreLibrary.ScoreDiv.prototype.callbackClickStandaloneBtn = function(event) {
         'modal': false,
         'autoOpen': false,
         'position': ['center', 'center'],
-        'width': this.width,
-        'minWidth': this.width,
-        'height': this.height,
-        'minHeight': this.height
+        'width': this.getWidth(),
+        'minWidth': this.getWidth(),
+        'height': 'auto',
+        'minHeight': this.getHeight()
     },
     this.callbackCreateStandaloneViewer,
     this.callbackResizeStopStandaloneViewer);
@@ -548,9 +576,11 @@ ScoreLibrary.ScoreDiv.prototype.callbackCreateStandaloneViewer =
             this.standalone_scorediv =
                 new ScoreLibrary.ScoreDiv(
                     this['standalone_dialog_node'].attr({
-                        'width': this.width,
-                        'height': this.height,
                         'musicxml_ref': this.musicxml_ref
+                    }).css({
+                        'padding': '0px',
+                        'width': this.getWidth(),
+                        'height': this.getHeight()
                     }), this.musicxml_file, true);
         }
     };
@@ -559,9 +589,6 @@ ScoreLibrary.ScoreDiv.prototype.callbackResizeStopStandaloneViewer =
     function(event, ui) {
 
         if (this.standalone_scorediv) {
-
-            this.standalone_scorediv.resize(
-                ui['size']['width'], ui['size']['height']);
 
             this.standalone_scorediv.asyncGetScore();
         }
@@ -634,8 +661,10 @@ ScoreLibrary.ScoreDiv.prototype.showWaitingImage = function() {
             'alt': 'musicxml loading...'
         });
 
-        var left = (this.width - this.waiting_node.prop('width')) * 0.5;
-        var bottom = (this.height - this.waiting_node.prop('height')) * 0.5;
+        var left = (this.getWidth() -
+                    this.waiting_node.prop('width')) * 0.5;
+        var bottom = (this.getHeight() -
+                      this.waiting_node.prop('height')) * 0.5;
 
         this.waiting_node.css({
 
@@ -667,31 +696,21 @@ ScoreLibrary.ScoreDiv.prototype.callbackScore = function(xml) {
 
     try {
 
+        this.resizeContext(
+            this.getWidth(),
+            (this.is_standalone ? this.getHeight() :
+             this.getHeight() - this.getToolbarHeight()));
+
         this.source = new ScoreLibrary.Score.Source(xml);
 
-        if (!this.context) {
-
-            this.context =
-                new ScoreLibrary.Renderer.PaintContext.Canvas(this.canvas_node);
-
-            this.custom_renderer = this.context.getCustomTextRenderer();
-
-            this.glyph_factory = this.custom_renderer.getGlyphFactory();
-
-            this.glyph_factory.addFont(ScoreLibrary.Renderer.Fonts.Gonville18);
-/*          this.glyph_factory.addFont(
-                ScoreLibrary.Renderer.Fonts.GonvilleBrace);*/
-        }
-
-        this.restContextCache();
-
-        this.engraver = new ScoreLibrary.Engraver.Pager(this.context);
+        this.engraver = new ScoreLibrary.Engraver.Pager(this.getDrawContext());
 
         this.page_iterator = this.engraver.engrave(this.source);
 
+        this.showToolbar();
+
         this.showCurrPage();
 
-        this.createToolbar();
         this.checkNavigateStates();
 
     } catch (errorThrown) {
@@ -712,10 +731,7 @@ ScoreLibrary.ScoreDiv.prototype.callbackError = function(errorThrown) {
 
 ScoreLibrary.ScoreDiv.prototype.asyncGetScore = function() {
 
-    if (this.context) {
-
-        this.context.clear();
-    }
+    this.getDrawContext().clear();
 
     this.showWaitingImage();
 
