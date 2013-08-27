@@ -1,0 +1,4 @@
+# We don't keep the closure compiler in the repo.
+/COPYING
+/README
+/compiler.jar
