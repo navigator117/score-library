@@ -3,7 +3,7 @@
 ./public/closure-library/closure/bin/build/closurebuilder.py \
 --root='./public/closure-library/' \
 --root='./src' \
---namespace="ScoreLibrary.ScoreDiv" \
+--namespace="ScoreLibrary" \
 --output_mode=compiled \
 --compiler_jar=./support/compiler.jar \
 --compiler_flags="--compilation_level=ADVANCED_OPTIMIZATIONS" \
