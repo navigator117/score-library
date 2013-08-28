@@ -56,13 +56,9 @@ ScoreLibrary.Inflater.prototype.binaryStringToBlob = function(text) {
         bytes[i] = (text.charCodeAt(i) & 0xff);
     }
 
-    var blob_builder = new zip.BlobBuilder();
-
-    blob_builder.append(bytes.buffer);
-
     var mime_types = ScoreLibrary.MusicXMLMIMETypes;
 
-    return blob_builder.getBlob(mime_types.MIME_MXL);
+    return new Blob([bytes.buffer], { "type" : mime_types.MIME_MXL });
 };
 
 ScoreLibrary.Inflater.prototype.callbackContents = function(reader) {
