@@ -171,7 +171,7 @@ ScoreLibrary.Engraver.Liner.SystemListLazyIter.prototype.lazyNext = function() {
 
             if (!this.column_iterator.hasPrev()) {
 
-                var message = "score-div's width is not enough,";
+                var message = "container width is not enough,";
 
                 message += ' at least ';
                 message += Math.ceil(accumulate_system_length +

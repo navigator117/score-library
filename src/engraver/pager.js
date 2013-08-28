@@ -95,7 +95,7 @@ ScoreLibrary.Engraver.Pager.PageListLazyIter.prototype.lazyNext = function() {
 
             if (!this.system_iterator.hasPrev()) {
 
-                var message = "score-div's height is not enough,";
+                var message = "container height is not enough,";
 
                 message += ' at least ';
                 message +=
