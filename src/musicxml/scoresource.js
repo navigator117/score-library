@@ -9,6 +9,7 @@ goog.require('goog.asserts');
 /**
  * @constructor
  * @extends {ScoreLibrary.Score.Element}
+ * @export
  */
 ScoreLibrary.Score.Source = function(xml_node) {
 

@@ -4,6 +4,7 @@ goog.require('goog.asserts');
 
 /**
  * @constructor
+ * @export
  */
 ScoreLibrary.Renderer.PaintableLayouter = function() {
 };
@@ -38,6 +39,9 @@ ScoreLibrary.Renderer.PaintableLayouter.prototype.sizeAllocate =
         return true;
     };
 
+/**
+ * @export
+ */
 ScoreLibrary.Renderer.PaintableLayouter.prototype.sizeAllocateRecursively =
     function(allocation) {
 

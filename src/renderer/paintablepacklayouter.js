@@ -5,6 +5,7 @@ goog.require('goog.asserts');
 /**
  * @constructor
  * @extends {ScoreLibrary.Renderer.PaintableLayouter}
+ * @export
  */
 ScoreLibrary.Renderer.PaintablePackLayouter = function() {
 };
@@ -212,6 +213,9 @@ ScoreLibrary.Renderer.PaintablePackLayouter.prototype.filterChild =
                 !paintable.pack_forward);
     };
 
+/**
+ * @export
+ */
 ScoreLibrary.Renderer.PaintablePackLayouter.prototype.sizeAllocateRecursively =
     function(allocation) {
 

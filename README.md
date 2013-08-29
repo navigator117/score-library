@@ -41,6 +41,10 @@ If you want to work with compressed *.mxl* files, you'll need to add zip.js:
 Finally, for certain functionality, like the *ScoreLibrary.ScoreDiv* class,
 you also need to provide jQueryUI.
 
+Note: Currently, the minified version includes only one of the fonts,
+*ScoreLibrary.Renderer.Fonts.Gonville18*, and exposes only a very restricted
+set of the APIs (see issue #1).
+
 
 ## Using the source version
 

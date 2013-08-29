@@ -5,6 +5,7 @@ goog.require('ScoreLibrary.MusicXMLMIMETypes');
 
 /**
  * @constructor
+ * @export
  */
 ScoreLibrary.MusicXMLLoader =
     function(file_or_ref, context, successCallback, errorCallback) {
@@ -147,6 +148,9 @@ ScoreLibrary.AjaxMusicXML.prototype.callbackError =
         });
 })();
 
+/**
+ * @export
+ */
 ScoreLibrary.MusicXMLLoader.create =
     function(file_or_ref, context, successCallback, errorCallback) {
 

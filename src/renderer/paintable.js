@@ -8,6 +8,7 @@ goog.require('goog.asserts');
 
 /**
  * @constructor
+ * @export
  */
 ScoreLibrary.Renderer.Requisition = function() {
 };
@@ -70,6 +71,9 @@ ScoreLibrary.Renderer.Requisition.prototype.setExplicit =
         this[key] = value;
     };
 
+/**
+ * @export
+ */
 ScoreLibrary.Renderer.Requisition.prototype.getRequisite = function(dimension) {
 
     this.validateDim(dimension);

@@ -5,6 +5,7 @@ goog.require('goog.asserts');
 
 /**
  * @constructor
+ * @export
  */
 ScoreLibrary.Renderer.PaintContext.Canvas = function(canvas_node) {
 
@@ -52,6 +53,9 @@ ScoreLibrary.Renderer.PaintContext.Canvas.prototype.restore = function() {
     }
 };
 
+/**
+ * @export
+ */
 ScoreLibrary.Renderer.PaintContext.Canvas.prototype.clear = function() {
 
     try {

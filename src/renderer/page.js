@@ -33,6 +33,7 @@ ScoreLibrary.PageCounter.prototype.getPageType = function() {
  * @constructor
  * @extends {ScoreLibrary.Renderer.VBoxGlyph}
  * @extends {ScoreLibrary.PageCounter}
+ * @export
  */
 ScoreLibrary.Renderer.Page = function(page_counter) {
 
@@ -50,6 +51,9 @@ ScoreLibrary.inherited(
 ScoreLibrary.aggregate(ScoreLibrary.Renderer.Page,
                        ScoreLibrary.PageCounter);
 
+/**
+ * @export
+ */
 ScoreLibrary.Renderer.Page.prototype.draw = function(context) {
 
     context.save();

@@ -5,6 +5,7 @@ goog.require('goog.asserts');
 
 /**
  * @constructor
+ * @export
  */
 ScoreLibrary.Renderer.CustomTextRenderer = function(context) {
 
@@ -32,12 +33,18 @@ ScoreLibrary.Renderer.CustomTextRenderer.Style = {
     }
 };
 
+/**
+ * @export
+ */
 ScoreLibrary.Renderer.CustomTextRenderer.prototype.setGlyphFactory =
     function(glyph_factory) {
 
         this.glyph_factory = glyph_factory;
     };
 
+/**
+ * @export
+ */
 ScoreLibrary.Renderer.CustomTextRenderer.prototype.getGlyphFactory =
     function() {
 

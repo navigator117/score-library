@@ -9,6 +9,7 @@ goog.require('ScoreLibrary.Renderer.Page');
 
 /**
  * @constructor
+ * @export
  */
 ScoreLibrary.Engraver.Pager = function(context) {
 
@@ -17,6 +18,7 @@ ScoreLibrary.Engraver.Pager = function(context) {
 
 /**
  * @constructor
+ * @export
  */
 ScoreLibrary.Engraver.Pager.PageListLazyIter =
     function(source, layout_manager, system_iterator, context) {
@@ -36,18 +38,27 @@ ScoreLibrary.Engraver.Pager.PageListLazyIter =
         this.current = 0;
     };
 
+/**
+ * @export
+ */
 ScoreLibrary.Engraver.Pager.PageListLazyIter.prototype.getPageCount =
     function() {
 
         return (this.page_list ? this.page_list.length : 0);
     };
 
+/**
+ * @export
+ */
 ScoreLibrary.Engraver.Pager.PageListLazyIter.prototype.hasNext = function() {
 
     return (this.current < this.getPageCount() ?
             true : this.system_iterator.hasNext());
 };
 
+/**
+ * @export
+ */
 ScoreLibrary.Engraver.Pager.PageListLazyIter.prototype.next = function() {
 
     goog.asserts.assert(
@@ -131,11 +142,17 @@ ScoreLibrary.Engraver.Pager.PageListLazyIter.prototype.lazyNext = function() {
     return page;
 };
 
+/**
+ * @export
+ */
 ScoreLibrary.Engraver.Pager.PageListLazyIter.prototype.hasPrev = function() {
 
     return this.current > 0;
 };
 
+/**
+ * @export
+ */
 ScoreLibrary.Engraver.Pager.PageListLazyIter.prototype.prev = function() {
 
     goog.asserts.assert(
@@ -206,6 +223,9 @@ ScoreLibrary.Engraver.Pager.PageListLazyIter.prototype.engraveCreditInfos =
         }
     };
 
+/**
+ * @export
+ */
 ScoreLibrary.Engraver.Pager.prototype.engrave =
     function(source, layout_manager) {
 

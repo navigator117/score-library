@@ -5,6 +5,7 @@ goog.require('goog.asserts');
 
 /**
  * @constructor
+ * @export
  */
 ScoreLibrary.Renderer.PaintContext = function(canvas_node) {
 
@@ -147,6 +148,9 @@ ScoreLibrary.Renderer.PaintContext.prototype.setFont = function(font) {
         'ScoreLibrary.Renderer.PaintContext.setFont(): Unimplemented!');
 };
 
+/**
+ * @export
+ */
 ScoreLibrary.Renderer.PaintContext.prototype.getCustomTextRenderer =
     function() {
 

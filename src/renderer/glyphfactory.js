@@ -7,10 +7,14 @@ goog.require('goog.asserts');
 
 /**
  * @constructor
+ * @export
  */
 ScoreLibrary.Renderer.GlyphFactory = function() {
 };
 
+/**
+ * @export
+ */
 ScoreLibrary.Renderer.GlyphFactory.prototype.addFont = function(font) {
 
     this.fonts = this.fonts || [];
