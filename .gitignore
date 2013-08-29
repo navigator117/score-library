@@ -1,2 +1,5 @@
 scorelib.min.js
 scorelib.map
+
+# Only contains pulled dependencies
+/public/
