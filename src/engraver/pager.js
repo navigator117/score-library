@@ -35,7 +35,7 @@ ScoreLibrary.Engraver.Pager.PageListLazyIter =
 
         this.fix_org_coord = 'page';
 
-        this.current = 0;
+        this.current = -1;
     };
 
 /**
@@ -52,7 +52,7 @@ ScoreLibrary.Engraver.Pager.PageListLazyIter.prototype.getPageCount =
  */
 ScoreLibrary.Engraver.Pager.PageListLazyIter.prototype.hasNext = function() {
 
-    return (this.current < this.getPageCount() ?
+    return (this.current < this.getPageCount()-1 ?
             true : this.system_iterator.hasNext());
 };
 
@@ -65,8 +65,8 @@ ScoreLibrary.Engraver.Pager.PageListLazyIter.prototype.next = function() {
         this.hasNext(),
         'ScoreLibrary.Engraver.Pager.PageListLazyIter.next(): unexpect!');
 
-    return (this.current < this.getPageCount() ?
-            this.page_list[this.current++] : this.lazyNext());
+    return (this.current+1 < this.getPageCount() ?
+            this.page_list[++this.current] : this.lazyNext());
 };
 
 ScoreLibrary.Engraver.Pager.PageListLazyIter.prototype.lazyNext = function() {
