@@ -14,9 +14,10 @@
     "verify": "echo 'Open http://localhost:8080/test/verify.html in Chrome'"
   },
   "devDependencies": {
-    "puppeteer": "^23.0.0",
+    "@xmldom/xmldom": "^0.9.9",
+    "http-server": "^14.1.1",
     "pixelmatch": "^6.0.0",
     "pngjs": "^7.0.0",
-    "http-server": "^14.1.1"
+    "puppeteer": "^23.0.0"
   }
 }
