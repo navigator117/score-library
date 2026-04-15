@@ -42,6 +42,12 @@ ScoreLibrary.Engraver.Pager.PageListLazyIter.prototype.getPageCount =
         return (this.page_list ? this.page_list.length : 0);
     };
 
+ScoreLibrary.Engraver.Pager.PageListLazyIter.prototype.hasCurrent = function() {
+
+    return (this.current < this.getPageCount() ||
+            this.system_iterator.hasNext());
+};
+
 ScoreLibrary.Engraver.Pager.PageListLazyIter.prototype.hasNext = function() {
 
     return (this.current < this.getPageCount() ?

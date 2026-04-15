@@ -1,0 +1,87 @@
+name: Score Library CI
+
+on:
+  push:
+    branches: [ master, 'copilot/**' ]
+  pull_request:
+    branches: [ master ]
+
+permissions:
+  contents: read
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci || npm install
+
+      - name: Run lint checks
+        run: npm run lint
+
+      - name: Run unit tests
+        run: npm run test
+
+  visual-regression:
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci || npm install
+
+      - name: Run visual regression tests
+        run: npm run test:visual
+
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-test-results
+          path: test/output/
+          retention-days: 30
+
+  verify-page:
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify test page exists
+        run: |
+          test -f test/verify.html || (echo "ERROR: test/verify.html not found" && exit 1)
+          echo "✓ Verification page exists"
+
+      - name: Verify sample files exist
+        run: |
+          for f in test/samples/basic-notes.xml test/samples/guitar-simple.xml; do
+            test -f "$f" || (echo "ERROR: $f not found" && exit 1)
+            echo "✓ $f exists"
+          done
+
+      - name: Validate MusicXML samples
+        run: |
+          for f in test/samples/*.xml; do
+            python3 -c "
+          import xml.etree.ElementTree as ET
+          tree = ET.parse('$f')
+          root = tree.getroot()
+          assert root.tag == 'score-partwise', f'Expected score-partwise, got {root.tag}'
+          parts = root.findall('part')
+          assert len(parts) > 0, 'No parts found'
+          print(f'✓ $f: {len(parts)} part(s), valid MusicXML')
+          "
+          done
