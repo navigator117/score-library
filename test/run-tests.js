@@ -97,6 +97,49 @@ test('guitar-simple.xml exists and is valid XML', function() {
   assert(content.indexOf('Classical Guitar') !== -1, 'Missing guitar part name');
 });
 
+test('basic-clefs.xml has all 4 clef types (treble, bass, alto, tenor)', function() {
+  var xmlPath = path.join(rootDir, 'test/samples/basic-clefs.xml');
+  assert(fs.existsSync(xmlPath), 'File not found');
+  var content = fs.readFileSync(xmlPath, 'utf8');
+  assert(content.indexOf('<sign>G</sign>') !== -1, 'Missing treble clef (G)');
+  assert(content.indexOf('<sign>F</sign>') !== -1, 'Missing bass clef (F)');
+  assert(content.indexOf('<sign>C</sign>') !== -1, 'Missing C clef');
+  // Verify line positions
+  assert(content.indexOf('<line>2</line>') !== -1, 'Missing treble clef line 2');
+  assert(content.indexOf('<line>4</line>') !== -1, 'Missing bass/tenor clef line 4');
+  assert(content.indexOf('<line>3</line>') !== -1, 'Missing alto clef line 3');
+});
+
+test('basic-keys.xml has sharps and flats key signatures', function() {
+  var xmlPath = path.join(rootDir, 'test/samples/basic-keys.xml');
+  assert(fs.existsSync(xmlPath), 'File not found');
+  var content = fs.readFileSync(xmlPath, 'utf8');
+  assert(content.indexOf('<fifths>0</fifths>') !== -1, 'Missing C major (0)');
+  assert(content.indexOf('<fifths>4</fifths>') !== -1, 'Missing E major (4 sharps)');
+  assert(content.indexOf('<fifths>-4</fifths>') !== -1, 'Missing Ab major (4 flats)');
+});
+
+test('basic-time.xml has varied time signatures', function() {
+  var xmlPath = path.join(rootDir, 'test/samples/basic-time.xml');
+  assert(fs.existsSync(xmlPath), 'File not found');
+  var content = fs.readFileSync(xmlPath, 'utf8');
+  assert(content.indexOf('<beats>4</beats>') !== -1, 'Missing 4/4');
+  assert(content.indexOf('<beats>3</beats>') !== -1, 'Missing 3/4');
+  assert(content.indexOf('<beats>6</beats>') !== -1, 'Missing 6/8');
+  assert(content.indexOf('symbol="common"') !== -1, 'Missing common time');
+  assert(content.indexOf('symbol="cut"') !== -1, 'Missing cut time');
+});
+
+test('basic-barlines.xml has all barline types', function() {
+  var xmlPath = path.join(rootDir, 'test/samples/basic-barlines.xml');
+  assert(fs.existsSync(xmlPath), 'File not found');
+  var content = fs.readFileSync(xmlPath, 'utf8');
+  assert(content.indexOf('light-light') !== -1, 'Missing double barline');
+  assert(content.indexOf('light-heavy') !== -1, 'Missing final barline');
+  assert(content.indexOf('heavy-light') !== -1, 'Missing start repeat barline');
+  assert(content.indexOf('<repeat') !== -1, 'Missing repeat markers');
+});
+
 // --- Group 3: Dependency Graph Validation ---
 log('\nDependency Graph Validation:');
 
@@ -128,35 +171,47 @@ test('All provided namespaces are unique', function() {
   }
 });
 
-// --- Group 4: Known Bug Detection ---
-log('\nKnown Bug Detection:');
+// --- Group 4: Bug Fix Validation ---
+log('\nBug Fix Validation:');
 
-test('checkRangeOfValue has the known logic bug (pre-fix baseline)', function() {
+test('checkRangeOfValue uses correct || operator (M1 fix)', function() {
   var content = fs.readFileSync(path.join(rootDir, 'musicxml/xmlhelper.js'), 'utf8');
-  var bugLine = 'return_value < begin && return_value > end';
-  // This test documents the existing bug - it passes if the bug exists
-  // After fixing, update this test to check for the corrected logic
-  var hasBug = content.indexOf(bugLine) !== -1;
   var hasFixedVersion = content.indexOf('return_value < begin || return_value > end') !== -1;
+  var hasBugVersion = content.indexOf('return_value < begin && return_value > end') !== -1;
 
-  assert(hasBug || hasFixedVersion,
-    'checkRangeOfValue logic not found — file may have changed');
-
-  if (hasBug && !hasFixedVersion) {
-    log('    ⚠ Note: xmlhelper.js:402 contains the known range check bug (to be fixed in M1)');
-  }
+  assert(hasFixedVersion, 'checkRangeOfValue should use || not &&');
+  assert(!hasBugVersion, 'Old buggy && version should not exist');
 });
 
-test('supperclass typo exists in codebase (pre-fix baseline)', function() {
-  var content = fs.readFileSync(path.join(rootDir, 'scorelibrary.js'), 'utf8');
-  var hasTypo = content.indexOf('.supperclass') !== -1;
-  var hasFixed = content.indexOf('.superclass') !== -1;
+test('scorediv.js has no var re-declarations in createInput/createToolbarButton', function() {
+  var content = fs.readFileSync(path.join(rootDir, 'scorediv.js'), 'utf8');
 
-  assert(hasTypo || hasFixed, 'Neither supperclass nor superclass found');
+  // Check createInput does not have "var toolbar_input_node = $("
+  var hasInputRedecl = /var toolbar_input_node = \$\(/.test(content);
+  assert(!hasInputRedecl, 'createInput still has var re-declaration');
 
-  if (hasTypo && !hasFixed) {
-    log('    ⚠ Note: "supperclass" typo present throughout codebase (to be fixed in M1)');
-  }
+  // Check createToolbarButton does not have "var toolbar_button_node = $("
+  var hasButtonRedecl = /var toolbar_button_node = \$\(/.test(content);
+  assert(!hasButtonRedecl, 'createToolbarButton still has var re-declaration');
+});
+
+test('PageListLazyIter has hasCurrent() method', function() {
+  var content = fs.readFileSync(path.join(rootDir, 'engraver/pager.js'), 'utf8');
+  assert(content.indexOf('prototype.hasCurrent') !== -1,
+    'hasCurrent() method not found in PageListLazyIter');
+});
+
+test('showCurrPage uses hasCurrent() instead of hasNext()', function() {
+  var content = fs.readFileSync(path.join(rootDir, 'scorediv.js'), 'utf8');
+  // Extract the showCurrPage function
+  var fnStart = content.indexOf('showCurrPage');
+  assert(fnStart !== -1, 'showCurrPage not found');
+
+  var fnBody = content.substring(fnStart, fnStart + 200);
+  assert(fnBody.indexOf('hasCurrent()') !== -1,
+    'showCurrPage should call hasCurrent()');
+  assert(fnBody.indexOf('hasNext()') === -1,
+    'showCurrPage should not call hasNext()');
 });
 
 // --- Group 5: Test Infrastructure ---

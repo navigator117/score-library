@@ -399,7 +399,7 @@ ScoreLibrary.Score.XMLHelper.prototype.checkRequiredValue = function(node, path,
 
 ScoreLibrary.Score.XMLHelper.prototype.checkRangeOfValue = function(node, path, begin, end, return_value) {
 
-    if (return_value && (return_value < begin && return_value > end)) {
+    if (return_value && (return_value < begin || return_value > end)) {
 
         if (ScoreLibrary.Score.XMLHelper.DEBUG_VALIDATE_VALUE) {
 

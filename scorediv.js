@@ -161,7 +161,7 @@ ScoreLibrary.ScoreDiv.prototype.createInput =
         var toolbar_input_node = this[this_prop];
         if (!toolbar_input_node) {
 
-            var toolbar_input_node = $('<input></input>', input_attrs);
+            toolbar_input_node = $('<input></input>', input_attrs);
 
             toolbar_input_node.css(input_css);
 
@@ -180,7 +180,7 @@ ScoreLibrary.ScoreDiv.prototype.createToolbarButton =
         var toolbar_button_node = this[this_prop];
         if (!toolbar_button_node) {
 
-            var toolbar_button_node = $('<button></button>', button_attrs);
+            toolbar_button_node = $('<button></button>', button_attrs);
 
             toolbar_button_node.css(button_css);
 
@@ -414,7 +414,7 @@ ScoreLibrary.ScoreDiv.prototype.createToolbar = function() {
 
 ScoreLibrary.ScoreDiv.prototype.showCurrPage = function() {
 
-    if (this.page_iterator.hasNext()) { // !NOTE: Really ask 'has current?'
+    if (this.page_iterator.hasCurrent()) {
 
         var page_index = this.page_iterator.current || 0;
 
