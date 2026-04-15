@@ -554,7 +554,7 @@ var TestRunner = {
           // Check for parse errors
           var parseError = xmlDoc.querySelector('parsererror');
           if (parseError) {
-            throw new Error('XML parse error: ' + parseError.textContent.substr(0, 200));
+            throw new Error('XML parse error: ' + parseError.textContent.substring(0, 200));
           }
 
           // Create rendering canvas
