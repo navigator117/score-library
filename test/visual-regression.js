@@ -51,17 +51,39 @@ async function runVisualTests() {
 
     // Start a simple HTTP server for the test page
     var http = require('http');
-    var server = http.createServer(function(req, res) {
-      var filePath = path.join(rootDir, req.url === '/' ? '/test/verify.html' : req.url);
+    // Allowed URL-to-file mappings (whitelist approach to prevent path injection)
+    var allowedRoutes = {
+      '/': path.join(rootDir, 'test/verify.html'),
+      '/test/verify.html': path.join(rootDir, 'test/verify.html')
+    };
 
-      // Resolve relative paths from test/ directory
-      if (req.url.startsWith('/samples/')) {
-        filePath = path.join(rootDir, 'test', req.url);
+    // Pre-populate allowed routes for sample XML files
+    var samplesDir = path.join(rootDir, 'test/samples');
+    if (fs.existsSync(samplesDir)) {
+      fs.readdirSync(samplesDir).forEach(function(file) {
+        if (file.endsWith('.xml')) {
+          allowedRoutes['/samples/' + file] = path.join(samplesDir, file);
+        }
+      });
+    }
+
+    var server = http.createServer(function(req, res) {
+      // Parse URL and strip query strings
+      var urlPath = req.url.split('?')[0];
+
+      // Only serve whitelisted routes
+      var filePath = allowedRoutes[urlPath];
+      if (!filePath || !fs.existsSync(filePath)) {
+        res.writeHead(404, { 'Content-Type': 'text/plain' });
+        res.end('Not found');
+        return;
       }
 
-      if (!fs.existsSync(filePath)) {
-        res.writeHead(404);
-        res.end('Not found: ' + req.url);
+      // Verify resolved path is within the project directory
+      var resolved = path.resolve(filePath);
+      if (!resolved.startsWith(path.resolve(rootDir))) {
+        res.writeHead(403, { 'Content-Type': 'text/plain' });
+        res.end('Forbidden');
         return;
       }
 

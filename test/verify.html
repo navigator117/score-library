@@ -478,7 +478,7 @@ var TestRunner = {
 
   log: function(level, message) {
     var entry = {
-      time: new Date().toISOString().substr(11, 12),
+      time: new Date().toISOString().substring(11, 23),
       level: level,
       message: message
     };
