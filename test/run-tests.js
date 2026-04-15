@@ -297,7 +297,48 @@ test('showCurrPage uses hasCurrent() instead of hasNext()', function() {
     'showCurrPage should not call hasNext()');
 });
 
-// --- Group 5: Test Infrastructure ---
+// --- Group 5: M4 Editor Module Validation ---
+log('\nM4 Editor Module Validation:');
+
+test('editor/commands.js exports CommandHistory and all command types', function() {
+  var Commands = require('../editor/commands.js');
+  assert(typeof Commands.CommandHistory === 'function', 'CommandHistory');
+  assert(typeof Commands.InsertNoteCommand === 'function', 'InsertNoteCommand');
+  assert(typeof Commands.DeleteNoteCommand === 'function', 'DeleteNoteCommand');
+  assert(typeof Commands.ModifyNoteCommand === 'function', 'ModifyNoteCommand');
+  assert(typeof Commands.InsertMeasureCommand === 'function', 'InsertMeasureCommand');
+  assert(typeof Commands.DeleteMeasureCommand === 'function', 'DeleteMeasureCommand');
+  assert(typeof Commands.ChangeSignatureCommand === 'function', 'ChangeSignatureCommand');
+});
+
+test('editor/cursor.js exports Cursor with navigation methods', function() {
+  var CursorMod = require('../editor/cursor.js');
+  assert(typeof CursorMod.Cursor === 'function', 'Cursor');
+  var c = new CursorMod.Cursor({ parts: [{ measures: [{ elements: [] }] }] });
+  assert(typeof c.moveRight === 'function', 'moveRight');
+  assert(typeof c.moveLeft === 'function', 'moveLeft');
+  assert(typeof c.createNoteElement === 'function', 'createNoteElement');
+  assert(typeof c.pitchUp === 'function', 'pitchUp');
+  assert(typeof c.pitchDown === 'function', 'pitchDown');
+});
+
+test('editor/inputhandler.js exports InputHandler', function() {
+  var InputMod = require('../editor/inputhandler.js');
+  assert(typeof InputMod.InputHandler === 'function', 'InputHandler');
+});
+
+test('editor/templates.js creates valid SDM documents', function() {
+  var Templates = require('../editor/templates.js');
+  var sdm = Templates.classicalGuitar({ measures: 2 });
+  assert(sdm.version === '1.0', 'version');
+  assert(sdm.parts.length === 1, '1 part');
+  assert(sdm.parts[0].measures.length === 2, '2 measures');
+  var attrs = sdm.parts[0].measures[0].elements[0];
+  assert(attrs.type === 'attributes', 'has attributes');
+  assert(attrs.clef.sign === 'G', 'treble clef');
+});
+
+// --- Group 6: Test Infrastructure ---
 log('\nTest Infrastructure:');
 
 test('verify.html exists', function() {
