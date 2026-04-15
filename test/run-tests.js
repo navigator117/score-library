@@ -140,6 +140,89 @@ test('basic-barlines.xml has all barline types', function() {
   assert(content.indexOf('<repeat') !== -1, 'Missing repeat markers');
 });
 
+// --- Group 2b: M2 MusicXML Sample Validation ---
+log('\nM2 MusicXML Sample Validation:');
+
+test('guitar-simple.xml has multi-voice, fingering, slurs, dynamics', function() {
+  var xmlPath = path.join(rootDir, 'test/samples/guitar-simple.xml');
+  assert(fs.existsSync(xmlPath), 'File not found');
+  var content = fs.readFileSync(xmlPath, 'utf8');
+  assert(content.indexOf('<voice>1</voice>') !== -1, 'Missing voice 1');
+  assert(content.indexOf('<voice>2</voice>') !== -1, 'Missing voice 2');
+  assert(content.indexOf('<backup>') !== -1, 'Missing backup (multi-voice)');
+  assert(content.indexOf('<fingering') !== -1, 'Missing fingering');
+  assert(content.indexOf('<slur') !== -1, 'Missing slur');
+  assert(content.indexOf('<dynamics>') !== -1, 'Missing dynamics');
+  assert(content.indexOf('<tied') !== -1, 'Missing tied note');
+  assert(content.indexOf('<fermata') !== -1, 'Missing fermata');
+  assert(content.indexOf('<tenuto') !== -1, 'Missing tenuto articulation');
+});
+
+test('guitar-classical.xml is a complete classical guitar piece', function() {
+  var xmlPath = path.join(rootDir, 'test/samples/guitar-classical.xml');
+  assert(fs.existsSync(xmlPath), 'File not found');
+  var content = fs.readFileSync(xmlPath, 'utf8');
+  assert(content.indexOf('<score-partwise') !== -1, 'Not a valid MusicXML file');
+  assert(content.indexOf('Classical Guitar') !== -1, 'Missing guitar part');
+  // Multi-voice
+  assert(content.indexOf('<voice>1</voice>') !== -1, 'Missing voice 1');
+  assert(content.indexOf('<voice>2</voice>') !== -1, 'Missing voice 2');
+  // Fingering
+  assert(content.indexOf('<fingering') !== -1, 'Missing fingering notation');
+  // Dynamics
+  assert(content.indexOf('<p/>') !== -1, 'Missing piano dynamic');
+  assert(content.indexOf('<mf/>') !== -1, 'Missing mezzo-forte dynamic');
+  assert(content.indexOf('<f/>') !== -1, 'Missing forte dynamic');
+  // Slurs and ties
+  assert(content.indexOf('slur type="start"') !== -1, 'Missing slur');
+  assert(content.indexOf('tied type="start"') !== -1, 'Missing tie');
+  // Grace notes
+  assert(content.indexOf('<grace') !== -1, 'Missing grace note');
+  // Articulations
+  assert(content.indexOf('<accent/>') !== -1, 'Missing accent');
+  assert(content.indexOf('<staccato/>') !== -1, 'Missing staccato');
+  assert(content.indexOf('<tenuto/>') !== -1, 'Missing tenuto');
+  // Repeats and endings
+  assert(content.indexOf('repeat direction="forward"') !== -1, 'Missing forward repeat');
+  assert(content.indexOf('repeat direction="backward"') !== -1, 'Missing backward repeat');
+  assert(content.indexOf('ending number="1"') !== -1, 'Missing 1st ending');
+  assert(content.indexOf('ending number="2"') !== -1, 'Missing 2nd ending');
+  // Tempo
+  assert(content.indexOf('<metronome>') !== -1, 'Missing tempo marking');
+  // Wedge (crescendo/diminuendo)
+  assert(content.indexOf('wedge type="crescendo"') !== -1, 'Missing crescendo');
+  // Fermata
+  assert(content.indexOf('<fermata') !== -1, 'Missing fermata');
+  // Credits
+  assert(content.indexOf('<credit') !== -1, 'Missing credits');
+});
+
+test('basic-dynamics.xml has dynamic range from pp to ff', function() {
+  var xmlPath = path.join(rootDir, 'test/samples/basic-dynamics.xml');
+  assert(fs.existsSync(xmlPath), 'File not found');
+  var content = fs.readFileSync(xmlPath, 'utf8');
+  assert(content.indexOf('<pp/>') !== -1, 'Missing pp');
+  assert(content.indexOf('<p/>') !== -1, 'Missing p');
+  assert(content.indexOf('<mf/>') !== -1, 'Missing mf');
+  assert(content.indexOf('<f/>') !== -1, 'Missing f');
+  assert(content.indexOf('<ff/>') !== -1, 'Missing ff');
+  assert(content.indexOf('wedge type="crescendo"') !== -1, 'Missing crescendo');
+  assert(content.indexOf('wedge type="diminuendo"') !== -1, 'Missing diminuendo');
+});
+
+test('basic-articulations.xml has accent, staccato, tenuto, fermata', function() {
+  var xmlPath = path.join(rootDir, 'test/samples/basic-articulations.xml');
+  assert(fs.existsSync(xmlPath), 'File not found');
+  var content = fs.readFileSync(xmlPath, 'utf8');
+  assert(content.indexOf('<accent/>') !== -1, 'Missing accent');
+  assert(content.indexOf('<strong-accent/>') !== -1, 'Missing strong-accent');
+  assert(content.indexOf('<staccato/>') !== -1, 'Missing staccato');
+  assert(content.indexOf('<tenuto/>') !== -1, 'Missing tenuto');
+  assert(content.indexOf('<staccatissimo/>') !== -1, 'Missing staccatissimo');
+  assert(content.indexOf('<detached-legato/>') !== -1, 'Missing detached-legato');
+  assert(content.indexOf('<fermata') !== -1, 'Missing fermata');
+});
+
 // --- Group 3: Dependency Graph Validation ---
 log('\nDependency Graph Validation:');
 

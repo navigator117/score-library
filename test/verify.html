@@ -433,17 +433,31 @@ var VerifyConfig = {
       tests: [
         {
           id: 'm2-guitar-simple',
-          name: 'Simple Guitar Melody',
+          name: 'Simple Guitar — Multi-Voice & Fingering',
           type: 'visual',
           xmlFile: 'samples/guitar-simple.xml',
-          description: 'Simple melody in E minor with half and quarter notes'
+          description: 'E minor melody with 2 voices, fingering, slurs, ties, dynamics, fermata, tenuto'
         },
         {
           id: 'm2-guitar-classical',
           name: 'Classical Guitar Piece',
           type: 'visual',
           xmlFile: 'samples/guitar-classical.xml',
-          description: 'Full classical guitar piece with fingering, dynamics, slurs'
+          description: 'Full classical guitar piece: multi-voice, fingering, grace notes, slurs, ties, dynamics, crescendo, repeats, endings, articulations, fermata, tempo, credits'
+        },
+        {
+          id: 'm2-dynamics',
+          name: 'Dynamic Markings',
+          type: 'visual',
+          xmlFile: 'samples/basic-dynamics.xml',
+          description: 'pp, p, mf, f, ff with crescendo and diminuendo wedges'
+        },
+        {
+          id: 'm2-articulations',
+          name: 'Articulations',
+          type: 'visual',
+          xmlFile: 'samples/basic-articulations.xml',
+          description: 'Accent, strong-accent, staccato, tenuto, staccatissimo, detached-legato, fermata'
         }
       ]
     },
