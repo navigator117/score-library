@@ -1,0 +1,22 @@
+{
+  "name": "score-library",
+  "version": "0.1.0",
+  "description": "MusicXML score rendering library using Google Closure",
+  "author": "XiongWenjie <navigator117@gmail.com>",
+  "license": "GPL-3.0",
+  "private": true,
+  "scripts": {
+    "deps": "python3 closure-library/closure/bin/build/depswriter.py --root_with_prefix='score-library ../../../score-library' > score-library/scorelibrary-deps.js",
+    "lint": "node test/lint-check.js",
+    "test": "node test/run-tests.js",
+    "test:visual": "node test/visual-regression.js",
+    "serve": "npx http-server . -p 8080 -c-1",
+    "verify": "echo 'Open http://localhost:8080/test/verify.html in Chrome'"
+  },
+  "devDependencies": {
+    "puppeteer": "^23.0.0",
+    "pixelmatch": "^6.0.0",
+    "pngjs": "^7.0.0",
+    "http-server": "^14.1.1"
+  }
+}
